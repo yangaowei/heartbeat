@@ -2,14 +2,13 @@ package main
 
 //
 import (
+	"./logs"
 	"flag"
-	"github.com/yangaowei/gologs/logs"
 )
 
 var (
 	port    string
 	pattern string //api  cmd
-	path    string //api  cmd
 	debug   bool   //api  cmd
 	//url     string
 )
