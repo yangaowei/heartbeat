@@ -107,10 +107,29 @@ func genSql(data map[string]interface{}, table, action string) (sql string) {
 	return sql
 }
 
-func (o *orm) Query(sql string) (*sql.Rows, error) {
-	rows, err := Conn["default"].Query(sql)
-	logs.Log.Debug(" *err: %v", err)
-	return rows, err
+func (o *orm) List(obj interface{}) (objs []interface{}) {
+	getValue := reflect.ValueOf(obj)
+	getType := reflect.TypeOf(obj).Elem()
+	table := getTableName(getValue)
+	kv := genkv(obj)
+	sql := genSql(kv, table, "select")
+	logs.Log.Debug(" *sql: %v", sql)
+	rows, _ := db.Query(sql)
+	cols, _ := rows.Columns()
+	buff := make([]interface{}, len(cols)) // 临时slice
+	data := make([]string, len(cols))      // 存数据slice
+	for i, _ := range buff {
+		buff[i] = &data[i]
+	}
+	tmp := reflect.New(getType).Interface()
+	// logs.Log.Debug(" *tmp: %v", tmp)
+	// logs.Log.Debug(" *tmp: %v", obj)
+	for rows.Next() {
+		rows.Scan(buff...) // ...是必须的
+		genObj(data, cols, tmp)
+		objs = append(objs, tmp)
+	}
+	return
 }
 
 func genObj(data, cols []string, obj interface{}) {
@@ -155,22 +174,9 @@ func parseQueryColumn(field reflect.Value, s string) {
 }
 
 func (o *orm) Get(obj interface{}) interface{} {
-	getValue := reflect.ValueOf(obj)
-	table := getTableName(getValue)
-	kv := genkv(obj)
-	sql := genSql(kv, table, "select")
-	logs.Log.Debug(" *sql: %v", sql)
-	rows, _ := o.Query(sql)
-	cols, _ := rows.Columns()
-	buff := make([]interface{}, len(cols)) // 临时slice
-	data := make([]string, len(cols))      // 存数据slice
-	for i, _ := range buff {
-		buff[i] = &data[i]
-	}
-	if rows.Next() {
-		rows.Scan(buff...) // ...是必须的
-		genObj(data, cols, obj)
-		return obj
+	objs := o.List(obj)
+	if len(objs) > 0 {
+		return objs[0]
 	} else {
 		return nil
 	}

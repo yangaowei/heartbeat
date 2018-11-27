@@ -25,7 +25,7 @@ func (p *Project) TableName() string {
 func TestORM(t *testing.T) {
 	RegisterDataBase("default")
 	fmt.Println(Orm.DbInfo())
-	project := &Project{Id: 1}
+	project := &Project{}
 	p := Orm.Get(project)
-	fmt.Println(p)
+	fmt.Println(p.(*Project))
 }
