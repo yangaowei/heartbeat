@@ -9,15 +9,17 @@ import (
 )
 
 var (
-	port    string
-	pattern string //api  cmd
-	debug   bool   //api  cmd
+	port      string
+	pattern   string //api  cmd
+	debug     bool   //api  cmd
+	workerNum int
 	//url     string
 )
 
 func initFlag() {
 	flag.StringVar(&pattern, "pattern", "api", "web api")
 	flag.BoolVar(&debug, "debug", false, "logs pattern")
+	flag.IntVar(&workerNum, "wn", 0, "workerNum")
 	flag.Parse()
 }
 
@@ -33,9 +35,7 @@ func main() {
 	if pattern == "api" {
 		api.Run()
 	} else if pattern == "worker" {
-		var v string
-		logs.Log.Debug(v)
-		worker.Run()
+		worker.Run(workerNum)
 	} else {
 		logs.Log.Debug("Please use the mode in（api,worker）")
 	}
