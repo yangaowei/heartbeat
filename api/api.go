@@ -52,7 +52,7 @@ func callback(c *gin.Context) {
 	contentType := header.Get("Content-Type")
 	body, _ := ioutil.ReadAll(c.Request.Body)
 	defer c.Request.Body.Close()
-	fmt.Println("body:", string(body), contentType)
+	//fmt.Println("body:", string(body), contentType)
 	c.String(http.StatusOK, "1")
 }
 

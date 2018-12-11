@@ -23,6 +23,7 @@ var (
 	client      *http.Client
 	SHOULD_EXIT bool
 	wg          sync.WaitGroup
+	keys        []string
 )
 
 func init() {
@@ -82,7 +83,6 @@ func runForever(i int) {
 	for {
 		reSend := false
 		workerName := fmt.Sprintf("worker-%v", i)
-		keys := rediscli.ListKey("project")
 		value := rediscli.BRPop(1*time.Second, keys...)
 		if value == nil {
 			logs.Log.Debug("%v no task , sleep 1s", workerName)
@@ -126,6 +126,17 @@ func Run(wNum int) {
 		s := <-c
 		logs.Log.Debug("Got signal:, %v", s)
 		SHOULD_EXIT = true
+	}()
+	//更新队列列表
+	go func() {
+		for {
+			keys = rediscli.ListKey("project")
+			if len(keys) > 0 {
+				time.Sleep(1 * time.Minute)
+			} else {
+				time.Sleep(1 * time.Second)
+			}
+		}
 	}()
 	for i := 1; i < wNum+1; i++ {
 		wg.Add(1)
